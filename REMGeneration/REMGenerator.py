@@ -6,7 +6,7 @@ import polarTransform as pt
 
 class REMGenerator:
 
-    def __init__(self, Ht=60, Hr=1.5, fGHz=0.474166, K=1.3333, polar_radius=200, polar_angle=720, polar_order=3):
+    def __init__(self, Ht=60, Hr=1.5, fGHz=0.474166, K=1.3333, polar_radius=200,polar_radius_points=200, polar_angle=720, polar_order=3):
 
         self.Ht = Ht
         self.Hr = Hr
@@ -14,18 +14,19 @@ class REMGenerator:
         self.K = K
 
         self.polar_radius = polar_radius
+        self.polar_radius_points = polar_radius_points
         self.polar_angle = polar_angle
         self.polar_order = polar_order
 
         phi = np.linspace(0, 2 * np.pi, self.polar_angle)[:, None]
-        r = np.linspace(0, self.polar_radius, self.polar_radius)[None, :]
+        r = np.linspace(0, self.polar_radius, self.polar_radius_points)[None, :]
         self.x = r * np.cos(phi)
         self.y = r * np.sin(phi)
 
     def convertToPolar(self, terrain, center=(0, 0)):
 
         polar_terrain = pt.convertToPolarImage(terrain,
-                                              radiusSize=self.polar_radius,
+                                              radiusSize=self.polar_radius_points,
                                               angleSize=self.polar_angle,
                                               center=center,
                                               hasColor=False,
