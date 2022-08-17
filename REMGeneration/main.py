@@ -6,7 +6,19 @@ from itertools import repeat
 from tqdm import tqdm
 import os
 
-def generateFull(terrain_generator,rem_generator,i):
+def generateFull(i):
+
+    terrain_generator = Terrain(config.__terrain_size__)
+    rem_generator = REMGenerator(
+        Ht=config.__Ht__,
+        Hr=config.__Hr__,
+        fGHz=config.__fGHz__,
+        K=config.__K__,
+        polar_radius=config.__polar_radius__,
+        polar_radius_points=config.__polar_radius_points__,
+        polar_angle=config.__polar_angle__,
+        polar_order=config.__polar_order__
+    )
 
     terrain = terrain_generator.getTerrain(
         config.__number_of_buildings__,
@@ -23,7 +35,7 @@ def generateFull(terrain_generator,rem_generator,i):
 
 def main():
 
-    n_cpus = os.cpu_count()
+    n_cpus = os.cpu_count()-2
     batches = config.__NREM__//n_cpus
     print(f"Found {n_cpus} cpus, Starting Generation of {config.__NREM__} Data Points.")
 
@@ -37,29 +49,13 @@ def main():
         seen = len(os.listdir(config.__output_path+os.sep+'rems'))
         print(f"Found {seen} REMs adding after them")
 
-    terrain_generator = Terrain(config.__terrain_size__)
-    rem_generator = REMGenerator(
-        Ht=config.__Ht__,
-        Hr=config.__Hr__,
-        fGHz=config.__fGHz__,
-        K=config.__K__,
-        polar_radius=config.__polar_radius__,
-        polar_radius_points=config.__polar_radius_points__,
-        polar_angle=config.__polar_angle__,
-        polar_order=config.__polar_order__
-    )
-
     if batches==0:
         batches=1
 
     with Pool() as pool:
 
         for batch in tqdm(range(batches)):
-            pool.starmap(generateFull,zip(
-                repeat(terrain_generator),
-                repeat(rem_generator),
-                range(seen+batch*n_cpus,seen+(batch+1)*n_cpus)
-            ))
+            pool.starmap(generateFull,range(seen+batch*n_cpus,seen+(batch+1)*n_cpus))
 
 if __name__=='__main__':
 
