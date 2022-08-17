@@ -1,4 +1,5 @@
 __NREM__ = 10
+__NCPUS__ = 2
 __output_path = 'REMS'
 
 ##Terrain Generator Params

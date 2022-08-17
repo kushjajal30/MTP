@@ -35,7 +35,7 @@ def generateFull(i):
 
 def main():
 
-    n_cpus = os.cpu_count()-2
+    n_cpus = config.__NCPUS__
     batches = config.__NREM__//n_cpus
     print(f"Found {n_cpus} cpus, Starting Generation of {config.__NREM__} Data Points.")
 
@@ -55,7 +55,7 @@ def main():
     with Pool() as pool:
 
         for batch in tqdm(range(batches)):
-            pool.starmap(generateFull,range(seen+batch*n_cpus,seen+(batch+1)*n_cpus))
+            pool.map(generateFull,range(seen+batch*n_cpus,seen+(batch+1)*n_cpus))
 
 if __name__=='__main__':
 

@@ -1,16 +1,14 @@
 import numpy as np
+import os
+import time
 
 class Terrain:
     def __init__(self, terrain_size):
-        self.terrain = np.zeros((terrain_size, terrain_size))
-
-    def get_building(self, start_x, start_y, building_width, building_length,height):
-        for i in range(building_width):
-            for j in range(building_length):
-                self.terrain[(i + start_x),(j+start_y)] = height
+        np.random.seed((os.getpid() * int(time.time())) % 123456789)
+        self.terrain_size = terrain_size
 
     def getTerrain(self, number_of_buildings, building_min_width, building_min_length, terrain_size, min_height, max_height,  building_max_width, building_max_length):
-
+        terrain = np.zeros((terrain_size, terrain_size))
         number_of_buildings_each_axis = np.sqrt(number_of_buildings)
         gap = (terrain_size / number_of_buildings)/2 #gap = (terrain_size / number_of_buildings_each_axis) / number_of_buildings_each_axis
         number_of_buildings_y_axis = np.random.randint(2, number_of_buildings_each_axis)
@@ -30,7 +28,6 @@ class Terrain:
                 building_width = np.random.randint(building_min_width, max_width_of_building_x_axis)
                 building_length = np.random.randint(building_min_length, max_length_of_building_y_axis)
 
-
                 start_x_max = (start[0] + x_unit) - building_width
                 #print("start[0] : ",start[0],"\t\tstart_x_max : ",start_x_max)
 
@@ -42,10 +39,11 @@ class Terrain:
                 start_y = np.random.randint(start[1], start_y_max)
                 #print("start_x : ",start_x,"\t\tstart_y : ",start_y)
                 height = np.random.randint(min_height, max_height)
-                self.get_building(start_x, start_y, building_width, building_length, height)
+                terrain[start_x:start_x+building_width,start_y:start_y+building_length]=height
+                #self.get_building(start_x, start_y, building_width, building_length, height)
 
 
-        return self.terrain
+        return terrain
 
 if __name__ == '__main__':
     number_of_buildings = 20
