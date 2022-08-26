@@ -36,7 +36,7 @@ class PathSampler:
 
             point, directions = stack[-1]
 
-            if len(directions) == 1:
+            if len(directions) == 0:
                 stack.pop()
                 continue
 
@@ -70,6 +70,67 @@ class PathSampler:
             #print(stack)
         print(len(path))
         return path
+
+
+class PathSampler2:
+
+    def __init__(self, points ):
+        self.points = points
+
+    def getRoads(self, terrain):
+
+        roads = set()
+        for i in range(len(terrain)):
+            for j in range(len(terrain[0])):
+
+                if terrain[i][j] == 0:
+                    roads.add((i, j))
+
+        return roads
+
+    def getpath(self, end, path, seen, road_sets, terrain):
+        current = path[-1]
+        seen.add(path[-2])
+
+        if current not in road_sets or current[0] < 0 or current[1] < 0 or current[0] >= len(terrain) or current[
+            1] >= len(terrain[0]) or current in seen:
+            return False, path
+        if current == end or len(seen) >= len(terrain):
+            return True, path
+
+        nexts = [
+            (current[0] + 1, current[1]),
+            (current[0] - 1, current[1]),
+            (current[0], current[1] + 1),
+            (current[0], current[1] - 1),
+        ]
+
+        for n in sorted(nexts, key=lambda a: abs(a[0] - end[0]) + abs(a[1] - end[1])):
+            out, new_path = self.getpath(end, path + [n], seen, road_sets, terrain)
+            if out:
+                return True, new_path
+
+        return False, path
+
+    def sample(self, terrain):
+        road_sets = self.getRoads(terrain)
+        start = list(road_sets)[np.random.randint(0, len(road_sets))]
+        path = [start]
+
+        while True:
+
+            end = list(road_sets)[np.random.randint(0, len(road_sets))]
+
+            gotans, new_path = self.getpath(end, [None, start], set(), road_sets, terrain)
+            if gotans:
+                path += new_path[2:]
+                start = path[-1]
+
+            if len(path) >= self.points:
+                break
+
+        print(len(path), len(set(path)))
+        return path[1:]
 
 if __name__ == '__main__':
     ter = np.zeros((100,100))
