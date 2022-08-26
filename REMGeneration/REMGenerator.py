@@ -52,6 +52,8 @@ class REMGenerator:
                           K=self.K
                           )
 
+        rem = np.abs(rem.min())+rem
+
         return np.flip(self.convertToCartesian(rem[:, :, 0], settings=settings)[0], axis=0)
 
     def getREMS(self, terrain, rem_output_path='REMS',i=0, save=False):
@@ -78,6 +80,6 @@ if __name__ == '__main__':
     terrain[20:40,70:90] = 40
     terrain[10:15,30:40] = 20
 
-    rem = rem_gen.getREM(terrain,center=(50,50))
-    print(rem)
+    remsample = rem_gen.getREM(terrain,center=(50,50))
+    print(remsample)
 
