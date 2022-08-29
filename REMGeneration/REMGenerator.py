@@ -71,7 +71,7 @@ class REMGenerator:
         params = []
         for cx in range(center_start,center_end):
             for cy in range(center_start,center_end):
-                for ht in self.Ht
+                for ht in self.Ht:
                     params.append((terrain, (cx, cy),ht))
 
         rems = []
