@@ -17,7 +17,8 @@ def generateFull(completed_terrain_json,rem_output_path='REMS'):
         polar_radius=config.__polar_radius__,
         polar_radius_points=config.__polar_radius_points__,
         polar_angle=config.__polar_angle__,
-        polar_order=config.__polar_order__
+        polar_order=config.__polar_order__,
+        ncpus=config.__NCPUS__
     )
 
     terrain_info = terrain_generator.getTerrain(
@@ -31,7 +32,7 @@ def generateFull(completed_terrain_json,rem_output_path='REMS'):
         config.__building_max_length__
     )
     rems = rem_generator.getREMS(terrain_info)
-    np.save(f'{rem_output_path}{os.sep}rems{os.sep}{len(completed_terrain_json)}.npy', np.concatenate(rems, axis=0))
+    np.save(f'{rem_output_path}{os.sep}rems{os.sep}{len(completed_terrain_json)}.npy', rems)
 
     completed_terrain_json.append(terrain_info)
     with open(f'{rem_output_path}{os.sep}terrain_info.json','w') as f:

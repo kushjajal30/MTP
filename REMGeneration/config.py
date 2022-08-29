@@ -13,7 +13,7 @@ __min_height__ = 15
 __max_height__ = 40
 
 #REM Generator Params
-__Ht__ = __max_height__+20
+__Ht__ = [20,40,60]
 __Hr__ = 1.5
 __fGHz__ = 0.474166
 __K__ = 1.3333

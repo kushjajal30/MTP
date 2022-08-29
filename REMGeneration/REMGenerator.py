@@ -1,13 +1,15 @@
-import os
 import numpy as np
 import pylayers.antprop.loss as loss
 import polarTransform as pt
 from REMGeneration.utils import get_terrain_from_info
-
+from multiprocessing import Pool
 
 class REMGenerator:
 
-    def __init__(self, Ht=60, Hr=1.5, fGHz=0.474166, K=1.3333, polar_radius=200,polar_radius_points=200, polar_angle=720, polar_order=3):
+    def __init__(self, Ht=None, Hr=1.5, fGHz=0.474166, K=1.3333, polar_radius=200, polar_radius_points=200, polar_angle=720, polar_order=3, ncpus = 1):
+
+        if Ht is None:
+            Ht = [60]
 
         self.Ht = Ht
         self.Hr = Hr
@@ -23,6 +25,8 @@ class REMGenerator:
         r = np.linspace(0, self.polar_radius, self.polar_radius_points)[None, :]
         self.x = r * np.cos(phi)
         self.y = r * np.sin(phi)
+
+        self.ncpus = ncpus
 
     def convertToPolar(self, terrain, center=(0, 0)):
 
@@ -41,13 +45,13 @@ class REMGenerator:
             settings = self.settings
         return pt.convertToCartesianImage(rem, settings=settings)
 
-    def getREM(self, terrain, center):
+    def getREM(self, terrain, center,ht):
 
         polar_terrain, settings = self.convertToPolar(terrain, center=center)
         rem = -loss.cover(X=self.x,
                           Y=self.y,
                           Z=polar_terrain,
-                          Ha=self.Ht,
+                          Ha=ht,
                           Hb=self.Hr,
                           fGHz=self.fGHz,
                           K=self.K
@@ -64,13 +68,19 @@ class REMGenerator:
         center_start = len(terrain)//4
         center_end = 3*len(terrain)//4
 
-        rems = []
-        for cx in range(center_start,center_start+3):
-            for cy in range(center_start,center_start+3):
-                rems.append(np.expand_dims(self.getREM(terrain, center=(cx, cy)),axis=0))
-        rems = np.array(rems)
+        params = []
+        for cx in range(center_start,center_end):
+            for cy in range(center_start,center_end):
+                for ht in self.Ht
+                    params.append((terrain, (cx, cy),ht))
 
-        return rems
+        rems = []
+        with Pool(processes=self.ncpus) as pool:
+
+            for i in range(0,len(params),self.ncpus):
+                rems += pool.starmap(self.getREM,params[i:i+self.ncpus])
+
+        return np.array(rems)
 
 
 if __name__ == '__main__':
@@ -79,6 +89,6 @@ if __name__ == '__main__':
     terrain[20:40,70:90] = 40
     terrain[10:15,30:40] = 20
 
-    remsample = rem_gen.getREM(terrain,center=(50,50))
+    remsample = rem_gen.getREM(terrain,center=(50,50),ht=50)
     print(remsample)
 
