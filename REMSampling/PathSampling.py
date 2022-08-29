@@ -112,8 +112,26 @@ class PathSampler2:
 
         return False, path
 
-    def sample(self, terrain):
+    def modifyterrain(self,terrain,terrain_info):
+
+        pad = np.random.choice([i for i in range(11)],p=[(6-abs(6-i-1))/(5*(5+1)+6) for i in range(11)])
+
+        for building in terrain_info:
+
+            i,j = max(0,building['x']-pad),max(0,building['y']-pad)
+
+            for k in range(i,min(len(terrain),building['x']+building['length']+pad)):
+                for l in range(j,min(len(terrain[0]),building['y']+building['width']+pad)):
+                    terrain[k,l] += 1
+        return terrain
+
+
+
+    def sample(self, terrain,terrain_info):
+
+        terrain = self.modifyterrain(np.copy(terrain),terrain_info)
         road_sets = self.getRoads(terrain)
+
         start = list(road_sets)[np.random.randint(0, len(road_sets))]
         path = [start]
 
@@ -130,7 +148,7 @@ class PathSampler2:
                 break
 
         print(len(path), len(set(path)))
-        return path[1:]
+        return path[1:],terrain
 
 if __name__ == '__main__':
     ter = np.zeros((100,100))
