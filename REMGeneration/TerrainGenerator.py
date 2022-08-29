@@ -8,7 +8,7 @@ class Terrain:
         self.terrain_size = terrain_size
 
     def getTerrain(self, number_of_buildings, building_min_width, building_min_length, terrain_size, min_height, max_height,  building_max_width, building_max_length):
-        terrain = np.zeros((terrain_size, terrain_size))
+        terrain_info = []
         number_of_buildings_each_axis = np.sqrt(number_of_buildings)
         gap = (terrain_size / number_of_buildings)/2 #gap = (terrain_size / number_of_buildings_each_axis) / number_of_buildings_each_axis
         number_of_buildings_y_axis = np.random.randint(2, number_of_buildings_each_axis)
@@ -39,11 +39,13 @@ class Terrain:
                 start_y = np.random.randint(start[1], start_y_max)
                 #print("start_x : ",start_x,"\t\tstart_y : ",start_y)
                 height = np.random.randint(min_height, max_height)
-                terrain[start_x:start_x+building_width,start_y:start_y+building_length]=height
+                #For this module width is connected to x while other modules length is connected to x
+                terrain_info.append(
+                    {'x': start_x, 'y': start_y, 'length': building_width, 'width': building_length, 'height': height}
+                )
                 #self.get_building(start_x, start_y, building_width, building_length, height)
 
-
-        return terrain
+        return terrain_info
 
 if __name__ == '__main__':
     number_of_buildings = 20

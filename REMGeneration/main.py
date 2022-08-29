@@ -1,12 +1,12 @@
+import json
 import REMGeneration.config as config
 from REMGeneration.REMGenerator import REMGenerator
 from REMGeneration.TerrainGenerator import Terrain
-from multiprocess.pool import Pool
-from itertools import repeat
+import numpy as np
 from tqdm import tqdm
 import os
 
-def generateFull(i):
+def generateFull(completed_terrain_json,rem_output_path='REMS'):
 
     terrain_generator = Terrain(config.__terrain_size__)
     rem_generator = REMGenerator(
@@ -20,7 +20,7 @@ def generateFull(i):
         polar_order=config.__polar_order__
     )
 
-    terrain = terrain_generator.getTerrain(
+    terrain_info = terrain_generator.getTerrain(
         config.__number_of_buildings__,
         config.__building_min_width__,
         config.__building_min_length__,
@@ -30,32 +30,32 @@ def generateFull(i):
         config.__building_max_width__,
         config.__building_max_length__
     )
+    rems = rem_generator.getREMS(terrain_info)
+    np.save(f'{rem_output_path}{os.sep}rems{os.sep}{len(completed_terrain_json)}.npy', np.concatenate(rems, axis=0))
 
-    rem_generator.getREMS(terrain,i=i,save=True)
+    completed_terrain_json.append(terrain_info)
+    with open(f'{rem_output_path}{os.sep}terrain_info.json','w') as f:
+        json.dump(completed_terrain_json,f)
+
 
 def main():
-
-    n_cpus = config.__NCPUS__
-    batches = config.__NREM__//n_cpus
-    print(f"Found {n_cpus} cpus, Starting Generation of {config.__NREM__} Data Points.")
 
     if not os.path.exists(config.__output_path):
         os.mkdir(config.__output_path)
         os.mkdir(config.__output_path+os.sep+'rems')
-        os.mkdir(config.__output_path+os.sep+'terrains')
-        seen = 0
-        print("Created New Directory.")
+        completed_terrain_json = []
+        print("Starting new session.")
+    elif not os.path.exists(config.__output_path+os.sep+'terrain_info.json'):
+        completed_terrain_json = []
+        print("Starting new session.")
     else:
-        seen = len(os.listdir(config.__output_path+os.sep+'rems'))
+        with open(config.__output_path+os.sep+'terrain_info.json') as f:
+            completed_terrain_json = json.load(f)
+        seen = len(completed_terrain_json)
         print(f"Found {seen} REMs adding after them")
 
-    if batches==0:
-        batches=1
-
-    with Pool() as pool:
-
-        for batch in tqdm(range(batches)):
-            pool.map(generateFull,range(seen+batch*n_cpus,seen+(batch+1)*n_cpus))
+    for _ in tqdm(range(config.__NREM__)):
+        generateFull(completed_terrain_json,config.__output_path)
 
 if __name__=='__main__':
 

@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pylayers.antprop.loss as loss
 import polarTransform as pt
+from REMGeneration.utils import get_terrain_from_info
 
 
 class REMGenerator:
@@ -56,20 +57,18 @@ class REMGenerator:
 
         return np.flip(self.convertToCartesian(rem[:, :, 0], settings=settings)[0], axis=0)
 
-    def getREMS(self, terrain, rem_output_path='REMS',i=0, save=False):
+    def getREMS(self, terrain_info):
+
+        terrain = get_terrain_from_info(terrain_info)
 
         center_start = len(terrain)//4
         center_end = 3*len(terrain)//4
 
         rems = []
-        for cx in range(center_start,center_end):
-            for cy in range(center_start,center_end):
+        for cx in range(center_start,center_start+3):
+            for cy in range(center_start,center_start+3):
                 rems.append(np.expand_dims(self.getREM(terrain, center=(cx, cy)),axis=0))
         rems = np.array(rems)
-
-        if save:
-            np.save(f'{rem_output_path}{os.sep}rems{os.sep}{i}.npy', np.concatenate(rems, axis=0))
-            np.save(f'{rem_output_path}{os.sep}terrains{os.sep}{i}.npy',terrain)
 
         return rems
 

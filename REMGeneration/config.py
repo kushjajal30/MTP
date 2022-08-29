@@ -1,6 +1,6 @@
 __NREM__ = 10
 __NCPUS__ = 2
-__output_path = 'REMS'
+__output_path = 'REMS_0829'
 
 ##Terrain Generator Params
 __number_of_buildings__ = 10
