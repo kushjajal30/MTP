@@ -15,9 +15,10 @@ __max_height__ = 40
 #REM Generator Params
 __Ht__ = [20,40,60]
 __Hr__ = 1.5
-__fGHz__ = 0.474166
+__fGHz__ = 0.005
 __K__ = 1.3333
 __polar_radius__ = (__terrain_size__/2)*(2**0.5)
 __polar_radius_points__ = __terrain_size__
 __polar_angle__ = 360
 __polar_order__ = 3
+__signal_strength__ = 65

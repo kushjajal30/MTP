@@ -1,12 +1,12 @@
 import numpy as np
 import pylayers.antprop.loss as loss
 import polarTransform as pt
-from REMGeneration.utils import get_terrain_from_info
+from REMGeneration.utils import get_terrain_from_info,getBuildingSet
 from multiprocessing import Pool
 
 class REMGenerator:
 
-    def __init__(self, Ht=None, Hr=1.5, fGHz=0.474166, K=1.3333, polar_radius=200, polar_radius_points=200, polar_angle=720, polar_order=3, ncpus = 1):
+    def __init__(self, Ht=None, Hr=1.5, fGHz=0.474166, K=1.3333, polar_radius=200, polar_radius_points=200, polar_angle=720, polar_order=3, ncpus = 1, signal_strength=50):
 
         if Ht is None:
             Ht = [60]
@@ -27,6 +27,7 @@ class REMGenerator:
         self.y = r * np.sin(phi)
 
         self.ncpus = ncpus
+        self.signal_strength = signal_strength
 
     def convertToPolar(self, terrain, center=(0, 0)):
 
@@ -48,7 +49,7 @@ class REMGenerator:
     def getREM(self, terrain, center,ht):
 
         polar_terrain, settings = self.convertToPolar(terrain, center=center)
-        rem = -loss.cover(X=self.x,
+        rem = loss.cover(X=self.x,
                           Y=self.y,
                           Z=polar_terrain,
                           Ha=ht,
@@ -57,13 +58,12 @@ class REMGenerator:
                           K=self.K
                           )
 
-        rem = np.abs(rem.min())+rem
-
-        return np.flip(self.convertToCartesian(rem[:, :, 0], settings=settings)[0], axis=0)
+        return self.convertToCartesian(self.signal_strength-rem[:, :, 0], settings=settings)[0]
 
     def getREMS(self, terrain_info):
 
         terrain = get_terrain_from_info(terrain_info)
+        buildingset = getBuildingSet(terrain_info)
 
         center_start = len(terrain)//4
         center_end = 3*len(terrain)//4
@@ -71,8 +71,9 @@ class REMGenerator:
         params = []
         for cx in range(center_start,center_end):
             for cy in range(center_start,center_end):
-                for ht in self.Ht:
-                    params.append((terrain, (cx, cy),ht))
+                if (cx,cy) not in buildingset:
+                    for ht in self.Ht:
+                        params.append((terrain, (cx, cy),ht))
 
         rems = []
         with Pool(processes=self.ncpus) as pool:
