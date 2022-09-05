@@ -81,7 +81,7 @@ class REMGenerator:
             for i in range(0,len(params),self.ncpus):
                 rems += pool.starmap(self.getREM,params[i:i+self.ncpus])
 
-        return np.array(rems)
+        return np.array(rems),[(i[1][0],i[1][1],i[2]) for i in params]
 
 
 if __name__ == '__main__':

@@ -31,10 +31,10 @@ def generateFull(completed_terrain_json,rem_output_path='REMS'):
         config.__building_max_width__,
         config.__building_max_length__
     )
-    rems = rem_generator.getREMS(terrain_info)
+    rems,params = rem_generator.getREMS(terrain_info)
     np.save(f'{rem_output_path}{os.sep}rems{os.sep}{len(completed_terrain_json)}.npy', rems)
 
-    completed_terrain_json.append(terrain_info)
+    completed_terrain_json.append({'building_info':terrain_info,'index':{str(params[i]):i for i in range(len(params))}})
     with open(f'{rem_output_path}{os.sep}terrain_info.json','w') as f:
         json.dump(completed_terrain_json,f)
 
