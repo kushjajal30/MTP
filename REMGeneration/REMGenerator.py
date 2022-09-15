@@ -6,10 +6,7 @@ from multiprocessing import Pool
 
 class REMGenerator:
 
-    def __init__(self, Ht=None, Hr=1.5, fGHz=0.474166, K=1.3333, polar_radius=200, polar_radius_points=200, polar_angle=720, polar_order=3, ncpus = 1, signal_strength=50):
-
-        if Ht is None:
-            Ht = [60]
+    def __init__(self, Ht, Hr, fGHz, K, polar_radius, polar_radius_points, polar_angle, polar_order, ncpus , signal_strength):
 
         self.Ht = Ht
         self.Hr = Hr

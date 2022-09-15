@@ -18,7 +18,8 @@ def generateFull(completed_terrain_json,rem_output_path='REMS'):
         polar_radius_points=config.__polar_radius_points__,
         polar_angle=config.__polar_angle__,
         polar_order=config.__polar_order__,
-        ncpus=config.__NCPUS__
+        ncpus=config.__NCPUS__,
+        signal_strength=config.__signal_strength__
     )
 
     terrain_info = terrain_generator.getTerrain(
