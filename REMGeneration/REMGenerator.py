@@ -68,7 +68,7 @@ class REMGenerator:
         params = []
         for cx in range(center_start,center_end):
             for cy in range(center_start,center_end):
-                if (cx,cy) not in buildingset:
+                if (cy,cx) not in buildingset:
                     for ht in self.Ht:
                         params.append((terrain, (cx, cy),ht))
 
