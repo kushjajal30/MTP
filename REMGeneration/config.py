@@ -8,7 +8,7 @@ __building_min_width__ = 10
 __building_min_length__ = 10
 __building_max_width__ = 60
 __building_max_length__ = 60
-__terrain_size__ = 100
+__terrain_size__ = 256
 __min_height__ = 15
 __max_height__ = 40
 
