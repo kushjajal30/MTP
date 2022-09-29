@@ -54,8 +54,8 @@ def main():
 
             rem_fake = gen(ter)
 
-            dis_real_out = dis(rem)
-            dis_fake_out = dis(rem_fake)
+            dis_real_out = dis(torch.cat([rem,ter],dim=1))
+            dis_fake_out = dis(torch.cat([rem_fake,ter],dim=1))
 
             gen_classification_loss = bce_loss(dis_fake_out.vies((config.__bs__,-1)),ones)
             gen_l1_loss = l1_loss(rem_fake,rem)
