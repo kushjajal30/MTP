@@ -117,3 +117,6 @@ def main():
         axs[0][2].matshow(save_rem_fake,cmap='jet',vmax=30,vmin=-100)
 
         plt.savefig(f"epoch:{epoch}.png")
+
+if __name__=='__main__':
+    main()
