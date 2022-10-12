@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
-from REMGeneration.utils import get_terrain_from_info,getBuildingSet
+from torchvision.transforms import ToTensor
+from REMGeneration.utils import get_terrain_from_info
 from REMGeneration.REMGenerator import REMGenerator
 from REMGeneration.TerrainGenerator import Terrain
 import os
@@ -59,7 +60,7 @@ class REMStaticDataset(Dataset):
 
 class REMInTimeDataset(Dataset):
 
-    def __init__(self,config,terrain_per_epoch,crop_center,transforms):
+    def __init__(self,config,terrain_per_epoch):
         self.config = config
         self.terrain_generator = Terrain(config.__terrain_size__)
         self.rem_generator = REMGenerator(
@@ -75,12 +76,12 @@ class REMInTimeDataset(Dataset):
             signal_strength=config.__signal_strength__
         )
         self.terrain_per_epoch = terrain_per_epoch
-        self.crop_center = crop_center
 
-        self.transforms = transforms
+        self.transforms = ToTensor()
 
     def __len__(self):
         return self.terrain_per_epoch
+    
     def __getitem__(self, item):
 
         terrain_info = self.terrain_generator.getTerrain(
@@ -95,25 +96,8 @@ class REMInTimeDataset(Dataset):
         )
 
         terrain = get_terrain_from_info(terrain_info)
-
-        buildingset = getBuildingSet(terrain_info)
-        roadset = []
-        center_start = len(terrain)//4
-        center_end = 3*len(terrain)//4
-
-        for i in range(self.config.__terrain_size__):
-            for j in range(self.config.__terrain_size__):
-                if center_start <= i < center_end and center_start <= j < center_end and (i, j) not in buildingset:
-                    roadset.append((j,i))
-
-        center = random.choice(roadset)
         ht = random.choice(self.config.__Ht__)
-
-        if self.crop_center:
-            terrain = terrain[center[1]-len(terrain)//4:center[1]+len(terrain)//4,center[0]-len(terrain)//4:center[0]+len(terrain)//4]
-
-        rem = self.rem_generator.getREM(terrain,(len(terrain)//2,len(terrain)//2),ht)
-
+        rem = self.rem_generator.getREM(terrain,(0,0),ht)
 
         transformed = self.transforms(image=terrain, rem=rem)
         return transformed['image'], transformed['rem']
