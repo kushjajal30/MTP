@@ -8,26 +8,31 @@ import torch.optim as optim
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from tqdm import tqdm
+from tqdm import tqdm_notebook as tqdm
 import os
 
 def main():
 
     device = 'cuda'
 
-    traindataset = REMInTimeDataset(data_config,1024,True,transforms.ToTensor())
-    validdataset = REMInTimeDataset(data_config,64,True,transforms.ToTensor())
+    traindataset = REMInTimeDataset(data_config,1024)
+    validdataset = REMInTimeDataset(data_config,64)
 
     train_loader = DataLoader(traindataset,batch_size=config.__bs__,num_workers=config.__dataloader_workers__)
     valid_loader = DataLoader(validdataset,batch_size=config.__bs__,num_workers=config.__dataloader_workers__)
 
-    if config.__retrain__ and os.path.exists(config.__model_path__):
-        gen = os.path.join(config.__model_path__,'generator.pth')
-        dis = os.path.join(config.__model_path__,'discriminator.pth')
+    gen_path = os.path.join(config.__model_path__,'generator.pth')
+    dis_path = os.path.join(config.__model_path__,'discriminator.pth')
+
+    if config.__retrain__ and os.path.exists(gen_path) and os.path.exists(dis_path):
+        gen = torch.load(gen_path).to(device)
+        dis = torch.load(dis_path).to(device)
 
     else:
-        gen = GenUnet()
-        dis = Discriminator(2)
+        if not os.path.exists(config.__model_path__):
+            os.mkdir(config.__model_path__)
+        gen = GenUnet().to(device)
+        dis = Discriminator(2).to(device)
 
     optimizer_g = optim.Adam(gen.parameters(), lr=config.__gen_lr__, betas=(0.5, 0.999))
     optimizer_d = optim.Adam(dis.parameters(), lr=config.__dis_lr__, betas=(0.5, 0.999))
@@ -40,35 +45,38 @@ def main():
 
     train_loss = []
     valid_loss = []
+    
+    print(config.__gen_lr__,config.__dis_lr__,config.__gen_bce_lambda__,config.__gen_l1_lambda__)
 
     for epoch in tqdm(range(config.__epochs__)):
 
-        print(f"Training foir epoch:{epoch}")
+        print(f"Training for epoch:{epoch}")
 
         train_losses = []
 
-        for i,(ter,rem) in enumerate(train_loader):
+        for i,(ter,rem,ref_rem) in tqdm(enumerate(train_loader),total=int(1024/config.__bs__)):
 
-            ter = ter.to(device)
-            rem = rem.to(device)
+            ter = ter.to(device,dtype=torch.float)
+            rem = rem.to(device,dtype=torch.float)
+            ref_rem = rem.to(device,dtype=torch.float)
 
-            rem_fake = gen(ter)
+            rem_fake = gen(torch.cat([ter,ref_rem],dim=1))
 
             dis_real_out = dis(torch.cat([rem,ter],dim=1))
             dis_fake_out = dis(torch.cat([rem_fake,ter],dim=1))
 
-            gen_classification_loss = bce_loss(dis_fake_out.vies((config.__bs__,-1)),ones)
+            gen_classification_loss = bce_loss(dis_fake_out.view((config.__bs__,-1)),ones)
             gen_l1_loss = l1_loss(rem_fake,rem)
 
-            gen_loss = gen_classification_loss+config.__gen_l1_lambda__*gen_l1_loss
-            dis_loss = bce_loss(dis_fake_out.vies((config.__bs__,-1)),zeros) + bce_loss(dis_real_out.vies((config.__bs__,-1)),ones)
+            gen_loss = config.__gen_bce_lambda__*gen_classification_loss+config.__gen_l1_lambda__*gen_l1_loss
+            dis_loss = bce_loss(dis_fake_out.view((config.__bs__,-1)),zeros) + bce_loss(dis_real_out.view((config.__bs__,-1)),ones)
 
             gen.zero_grad()
             dis.zero_grad()
 
             gen_loss.backward(retain_graph=True)
-            optimizer_g.step()
             dis_loss.backward()
+            optimizer_g.step()
             optimizer_d.step()
 
             train_losses.append((gen_classification_loss,gen_l1_loss,gen_loss,dis_loss))
@@ -82,21 +90,21 @@ def main():
 
         valid_losses = []
 
-        for i,(ter,rem) in enumerate(valid_loader):
+        for i,(ter,rem,ref_rem)  in tqdm(enumerate(valid_loader),total=int(64/config.__bs__)):
 
-            ter = ter.to(device)
-            rem = rem.to(device)
+            ter = ter.to(device,dtype=torch.float)
+            rem = rem.to(device,dtype=torch.float)
+            ref_rem = ref_rem.to(device,dtype=torch.float)
 
-            rem_fake = gen(ter)
+            rem_fake = gen(torch.cat([ter,ref_rem],dim=1))
 
-            dis_real_out = dis(rem)
-            dis_fake_out = dis(rem_fake)
+            dis_real_out = dis(torch.cat([rem,ter],dim=1))
+            dis_fake_out = dis(torch.cat([rem_fake,ter],dim=1))
 
-            gen_classification_loss = bce_loss(dis_fake_out.vies((config.__bs__,-1)),ones)
+            gen_classification_loss = bce_loss(dis_fake_out.view((config.__bs__,-1)),ones)
             gen_l1_loss = l1_loss(rem_fake,rem)
-
-            gen_loss = gen_classification_loss+config.__gen_l1_lambda__*gen_l1_loss
-            dis_loss = bce_loss(dis_fake_out.vies((config.__bs__,-1)),zeros) + bce_loss(dis_real_out.vies((config.__bs__,-1)),ones)
+            gen_loss = config.__gen_bce_lambda__*gen_classification_loss+config.__gen_l1_lambda__*gen_l1_loss
+            dis_loss = bce_loss(dis_fake_out.view((config.__bs__,-1)),zeros) + bce_loss(dis_real_out.view((config.__bs__,-1)),ones)
 
             valid_losses.append((gen_classification_loss, gen_l1_loss, gen_loss, dis_loss))
 
@@ -109,14 +117,18 @@ def main():
         train_loss.append(train_losses)
         valid_loss.append(valid_losses)
 
-        save_rem_real = rem[0].to('cpu').clone().detach()
-        save_rem_fake = rem_fake[0].to('cpu').clone().detach()
+        save_rem_real = rem[0][0].to('cpu').clone().detach()
+        save_rem_fake = rem_fake[0][0].to('cpu').clone().detach()
 
         fig,axs = plt.subplots(1,2,figsize=(10,5))
-        axs[0][1].matshow(save_rem_real,cmap='jet',vmax=30,vmin=-100)
-        axs[0][2].matshow(save_rem_fake,cmap='jet',vmax=30,vmin=-100)
+        axs[0].matshow(save_rem_real,cmap='jet')
+        axs[1].matshow(save_rem_fake,cmap='jet')
+        plt.show()
 
         plt.savefig(f"epoch:{epoch}.png")
+
+        torch.save(gen,gen_path)
+        torch.save(dis,dis_path)
 
 if __name__=='__main__':
     main()
