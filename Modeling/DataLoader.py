@@ -78,11 +78,11 @@ class REMInTimeDataset(Dataset):
         )
         self.terrain_per_epoch = terrain_per_epoch
         terrain = np.zeros((config.__terrain_size__,config.__terrain_size__))
-        self.reference_rems = {ht:self.rem_generator.getREM(terrain,(0,0),ht) for ht in config.__Ht__}
         self.rem_value_range = (rem_low,rem_high)
+        ###CLIP Reference rems
+        self.reference_rems = {ht:(self.rem_generator.getREM(terrain,(0,0),ht)-self.rem_value_range[0])/(self.rem_value_range[1]-self.rem_value_range[0]) for ht in config.__Ht__}
 
-        self.transforms = transforms = Compose([
-            #Rotate(45),
+        self.transforms = Compose([
             ToTensorV2(),
         ],additional_targets={'rem':'image','reference_rem':'image'}
         )

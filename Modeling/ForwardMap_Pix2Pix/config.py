@@ -1,9 +1,10 @@
 __bs__ = 16
 __epochs__ = 10
-__dataloader_workers__ = max(25,__bs__)
+__dataloader_workers__ = min(25,__bs__)
 __gen_lr__ = 1e-5
-__dis_lr__ = 1e-3
+__dis_lr__ = 1e-5
 __gen_bce_lambda__ = 1
-__gen_l1_lambda__ = 100
+__gen_l1_lambda__ = 10
+__gen_l2_lambda__ = 1
 __retrain__ = False
 __model_path__ = 'SavedModels'
