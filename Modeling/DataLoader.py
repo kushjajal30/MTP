@@ -10,17 +10,18 @@ import numpy as np
 import json
 import random
 
+
 class REMStaticDataset(Dataset):
 
-    def __init__(self,path,transforms,reference_rem_path=None):
+    def __init__(self, path, transforms, reference_rem_path=None):
 
         self.path = path
-        self.rem_path = os.path.join(path,'rems')
+        self.rem_path = os.path.join(path, 'rems')
 
-        with open(os.path.join(path,'terrain_info.json'),'r') as f:
+        with open(os.path.join(path, 'terrain_info.json'), 'r') as f:
             self.terrain_info = json.load(f)
 
-        self.mapping = pd.read_csv(os.path.join(path,'rem_mapping.csv'))
+        self.mapping = pd.read_csv(os.path.join(path, 'rem_mapping.csv'))
         self.mapping = self.mapping.set_index('Id')
 
         self.n_terrains = len(os.listdir(self.rem_path))
@@ -29,21 +30,20 @@ class REMStaticDataset(Dataset):
 
         if reference_rem_path:
             self.reference_path = reference_rem_path
-            self.reference_rem_path = os.path.join(reference_rem_path,'rems')
-            self.reference_rem_mapping = pd.read_csv(os.path.join(reference_rem_path,'rem_mapping.csv'))
+            self.reference_rem_path = os.path.join(reference_rem_path, 'rems')
+            self.reference_rem_mapping = pd.read_csv(os.path.join(reference_rem_path, 'rem_mapping.csv'))
             self.reference_rem_mapping = self.reference_rem_mapping.set_index('transmitter_loc')
-
 
     def __len__(self):
         return self.n_terrains
 
     def __getitem__(self, item):
 
-        item = item+1
+        item = item + 1
         row = self.mapping.loc[item]
 
         terrain = get_terrain_from_info(self.terrain_info[int(row['terrain'])]['building_info'])
-        rem = np.load(os.path.join(self.rem_path,f'{item}.npy'))
+        rem = np.load(os.path.join(self.rem_path, f'{item}.npy'))
 
         if self.reference_path:
             reference_rem = np.load(os.path.join(
@@ -52,16 +52,16 @@ class REMStaticDataset(Dataset):
             ))
 
             transformed = self.transforms(image=terrain, rem=rem, reference_rem=reference_rem)
-            return transformed['image'],transformed['rem'],transformed['reference_rem']
+            return transformed['image'], transformed['rem'], transformed['reference_rem']
 
         else:
             transformed = self.transforms(image=terrain, rem=rem)
-            return transformed['image'],transformed['rem']
+            return transformed['image'], transformed['rem']
 
 
 class REMInTimeDataset(Dataset):
 
-    def __init__(self,config,terrain_per_epoch,rem_high=40,rem_low=-60):
+    def __init__(self, config, terrain_per_epoch, rem_high=40, rem_low=-60):
         self.config = config
         self.terrain_generator = Terrain(config.__terrain_size__)
         self.rem_generator = REMGenerator(
@@ -77,21 +77,21 @@ class REMInTimeDataset(Dataset):
             signal_strength=config.__signal_strength__
         )
         self.terrain_per_epoch = terrain_per_epoch
-        terrain = np.zeros((config.__terrain_size__,config.__terrain_size__))
-        self.rem_value_range = (rem_low,rem_high)
+        terrain = np.zeros((config.__terrain_size__, config.__terrain_size__))
+        self.rem_value_range = (rem_low, rem_high)
         ###CLIP Reference rems
-        self.reference_rems = {ht:(self.rem_generator.getREM(terrain,(0,0),ht)-self.rem_value_range[0])/(self.rem_value_range[1]-self.rem_value_range[0]) for ht in config.__Ht__}
+        self.reference_rems = {ht: (self.rem_generator.getREM(terrain, (0, 0), ht) - self.rem_value_range[0]) / (
+                    self.rem_value_range[1] - self.rem_value_range[0]) for ht in config.__Ht__}
 
         self.transforms = Compose([
             ToTensorV2(),
-        ],additional_targets={'rem':'image','reference_rem':'image'}
+        ], additional_targets={'rem': 'image', 'reference_rem': 'image'}
         )
 
     def __len__(self):
         return self.terrain_per_epoch
-    
-    def __getitem__(self, item):
 
+    def __getitem__(self, item):
         terrain_info = self.terrain_generator.getTerrain(
             self.config.__number_of_buildings__,
             self.config.__building_min_width__,
@@ -105,10 +105,10 @@ class REMInTimeDataset(Dataset):
 
         terrain = get_terrain_from_info(terrain_info)
         ht = random.choice(self.config.__Ht__)
-        rem = self.rem_generator.getREM(terrain,(0,0),ht)
+        rem = self.rem_generator.getREM(terrain, (0, 0), ht)
 
-        rem = np.clip(rem,a_min=self.rem_value_range[0],a_max=self.rem_value_range[1])
-        rem = (rem-self.rem_value_range[0])/(self.rem_value_range[1]-self.rem_value_range[0])
+        rem = np.clip(rem, a_min=self.rem_value_range[0], a_max=self.rem_value_range[1])
+        rem = (rem - self.rem_value_range[0]) / (self.rem_value_range[1] - self.rem_value_range[0])
 
-        transformed = self.transforms(image=terrain, rem=rem,reference_rem=self.reference_rems[ht])
-        return transformed['image']/self.config.__max_height__, transformed['rem'], transformed['reference_rem']
+        transformed = self.transforms(image=terrain, rem=rem, reference_rem=self.reference_rems[ht])
+        return transformed['image'] / self.config.__max_height__, transformed['rem'], transformed['reference_rem']
