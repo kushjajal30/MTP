@@ -43,6 +43,23 @@ class REMGenerator:
             settings = self.settings
         return pt.convertToCartesianImage(rem, settings=settings)
 
+    def getREMQuad(self,terrain,ht):
+
+        polar_terrain, settings = self.convertToPolar(terrain, center=(0,0))
+        rem = loss.cover(X=self.x[-self.polar_angle//4:],
+                          Y=self.y[-self.polar_angle//4:],
+                          Z=polar_terrain[-self.polar_angle//4:],
+                          Ha=ht,
+                          Hb=self.Hr,
+                          fGHz=self.fGHz,
+                          K=self.K
+                          )
+        full_rem = np.zeros_like(self.x)
+        full_rem[-self.polar_angle//4:]=rem[:,:,0]
+
+        return self.convertToCartesian(self.signal_strength-full_rem, settings=settings)[0]
+
+
     def getREM(self, terrain, center,ht):
 
         polar_terrain, settings = self.convertToPolar(terrain, center=center)
