@@ -44,10 +44,10 @@ class DeconvBlock(nn.Module):
 
 class GenUnet(nn.Module):
 
-    def __init__(self):
+    def __init__(self,n):
         super(GenUnet, self).__init__()
 
-        self.down_b1 = ConvBlock(2, 32)
+        self.down_b1 = ConvBlock(n, 32)
         self.down_b2 = ConvBlock(32, 64)
         self.down_b3 = ConvBlock(64, 128)
         self.down_b4 = ConvBlock(128, 256)
@@ -101,5 +101,5 @@ class Discriminator(nn.Module):
         x = self.l3(x)
         x = self.l4(x)
         x = self.outlayer(x)
-        
+
         return self.activation(x)

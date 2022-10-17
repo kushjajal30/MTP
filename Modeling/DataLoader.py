@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 from albumentations import Compose
 from albumentations.pytorch import ToTensorV2
-from REMGeneration.utils import get_terrain_from_info
+from REMGeneration.utils import get_terrain_from_info,get_multichannel_terrain
 from REMGeneration.REMGenerator import REMGenerator
 from REMGeneration.TerrainGenerator import Terrain
 import os
@@ -110,5 +110,7 @@ class REMInTimeDataset(Dataset):
         rem = np.clip(rem, a_min=self.rem_value_range[0], a_max=self.rem_value_range[1])
         rem = (rem - self.rem_value_range[0]) / (self.rem_value_range[1] - self.rem_value_range[0])
 
+        terrain = get_multichannel_terrain(terrain_info)
         transformed = self.transforms(image=terrain, rem=rem, reference_rem=self.reference_rems[ht])
-        return transformed['image'] / self.config.__max_height__, transformed['rem'], transformed['reference_rem']
+
+        return transformed['image'], transformed['rem'], transformed['reference_rem']

@@ -28,7 +28,7 @@ def main():
     else:
         if not os.path.exists(config.__model_path__):
             os.mkdir(config.__model_path__)
-        gen = GenUnet().to(device)
+        gen = GenUnet(data_config.__max_height__//10+2).to(device)
         dis = Discriminator(2).to(device)
 
     optimizer_g = optim.Adam(gen.parameters(), lr=config.__gen_lr__, betas=(0.5, 0.999))
