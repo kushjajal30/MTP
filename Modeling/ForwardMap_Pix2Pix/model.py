@@ -62,7 +62,7 @@ class GenUnet(nn.Module):
         self.final_decoder_1 = singlelayer(32, 1, 3, 'same', 1, True)
         self.final_decoder_2 = singlelayer(1, 1, 3, 'same', 1, True)
         self.final_decoder_3 = nn.Conv2d(1, 1, 3, padding='same')
-        self.final_act = nn.Sigmoid()
+        self.final_act = nn.Tanh()
 
     def forward(self, x):
         down_b1 = self.down_b1(x)
