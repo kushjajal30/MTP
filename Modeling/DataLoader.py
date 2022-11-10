@@ -61,7 +61,7 @@ class REMStaticDataset(Dataset):
 
 class REMInTimeDataset(Dataset):
 
-    def __init__(self, config, terrain_per_epoch,eigen_rems=None,rem_high=60, rem_low=-60):
+    def __init__(self, config, terrain_per_epoch,base_rem=None,rem_high=60, rem_low=-60):
         self.config = config
         self.terrain_generator = Terrain(config.__terrain_size__)
         self.rem_generator = REMGenerator(
@@ -77,14 +77,13 @@ class REMInTimeDataset(Dataset):
             signal_strength=config.__signal_strength__
         )
         self.terrain_per_epoch = terrain_per_epoch
-        terrain = np.zeros((config.__terrain_size__, config.__terrain_size__))
         self.rem_value_range = (rem_low, rem_high)
 
         self.transforms = Compose([
             ToTensorV2(),
         ], additional_targets={'rem': 'image'}
         )
-        self.eigen_rems = eigen_rems
+        self.base_rem = base_rem
 
     def __len__(self):
         return self.terrain_per_epoch
@@ -108,8 +107,8 @@ class REMInTimeDataset(Dataset):
         rem = np.clip(rem, a_min=self.rem_value_range[0], a_max=self.rem_value_range[1])
         rem = (rem - self.rem_value_range[0]) / (self.rem_value_range[1] - self.rem_value_range[0])
 
-        if self.eigen_rems:
-            rem-=self.eigen_rems
+        if self.base_rem:
+            rem-=self.base_rem
 
         transformed = self.transforms(image=terrain, rem=rem)
         return transformed['image'] / self.config.__max_height__, transformed['rem']

@@ -1,6 +1,7 @@
 __bs__ = 16
 __epochs__ = 45
 __dataloader_workers__ = 28
+__use_pixel_norm__  = True
 __gen_lr__ = 1e-3
 __dis_lr__ = 1e-3
 __gen_bce_lambda__ = 1
