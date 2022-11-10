@@ -33,7 +33,7 @@ def main():
     else:
         if not os.path.exists(config.__model_path__):
             os.mkdir(config.__model_path__)
-        gen = GenUnet().to(device)
+        gen = GenUnet(1).to(device)
         dis = Discriminator(2).to(device)
 
     optimizer_g = optim.Adam(gen.parameters(), lr=config.__gen_lr__, betas=(0.5, 0.999))
@@ -57,12 +57,11 @@ def main():
 
         train_losses = []
 
-        for i, (ter, rem, ref_rem) in tqdm(enumerate(train_loader), total=int(1024 / config.__bs__)):
+        for i, (ter, rem) in tqdm(enumerate(train_loader), total=int(1024 / config.__bs__)):
             ter = ter.to(device, dtype=torch.float)
             rem = rem.to(device, dtype=torch.float)
-            ref_rem = ref_rem.to(device, dtype=torch.float)
 
-            rem_fake = gen(torch.cat([ter, ref_rem], dim=1))
+            rem_fake = gen(rem)
 
             dis_real_out = dis(torch.cat([ter, rem], dim=1))
             dis_fake_out = dis(torch.cat([ter, rem_fake], dim=1))
