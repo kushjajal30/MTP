@@ -61,7 +61,7 @@ class REMStaticDataset(Dataset):
 
 class REMInTimeDataset(Dataset):
 
-    def __init__(self, config, terrain_per_epoch,eigen_rems=None,rem_high=40, rem_low=-60):
+    def __init__(self, config, terrain_per_epoch,eigen_rems=None,rem_high=60, rem_low=-60):
         self.config = config
         self.terrain_generator = Terrain(config.__terrain_size__)
         self.rem_generator = REMGenerator(
