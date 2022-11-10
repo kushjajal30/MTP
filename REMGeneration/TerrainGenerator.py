@@ -47,6 +47,27 @@ class Terrain:
 
         return terrain_info
 
+    def getTerrain2(self, average_number_of_building):
+
+        terrain_info = []
+
+        number_of_buildings = round(np.random.normal(loc=average_number_of_building,scale=average_number_of_building/4))
+
+        for i in range(number_of_buildings):
+
+            building_width = min(max(round(np.random.normal(loc=30,scale=10)),10),60)
+            building_length = min(max(round(np.random.normal(loc=30,scale=10)),10),60)
+            building_height = np.random.randint(10,40)
+
+            x = np.random.randint(5,self.terrain_size-30)
+            y = np.random.randint(5,self.terrain_size-30)
+
+            terrain_info.append(
+                {'x': x, 'y': y, 'length': building_width, 'width': building_length, 'height': building_height}
+            )
+
+
+        return terrain_info
 if __name__ == '__main__':
     number_of_buildings = 20
     building_min_width = 10
