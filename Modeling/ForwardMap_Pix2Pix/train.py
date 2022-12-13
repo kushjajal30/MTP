@@ -1,7 +1,7 @@
 from Modeling.ForwardMap_Pix2Pix import config
 from Modeling.DataLoader import REMInTimeDataset
 from Modeling.ForwardMap_Pix2Pix.model import GenUnet, Discriminator
-from Modeling.EigenREMs import *
+from Modeling.EigenREMs import get_eigen_rems,get_mean_rem
 from REMGeneration import config as data_config
 from matplotlib import pyplot as plt
 import torch.optim as optim
@@ -17,7 +17,7 @@ def main():
     device = 'cuda'
 
     if config.__use_pixel_norm__:
-        traindataset = REMInTimeDataset(data_config, 1024 , base_rem=get_mean_rem(data_config))
+        traindataset = REMInTimeDataset(data_config, 1024 , base_rem=get_eigen_rems(data_config,top_n=1))
     else:
         traindataset = REMInTimeDataset(data_config,1024)
 

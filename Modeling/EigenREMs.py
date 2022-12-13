@@ -36,11 +36,14 @@ def get_eigen_rems(data_config,nrems=2000,top_n=1):
 
     U, S, V = np.linalg.svd(svd_x)
 
-    top_n_components = V[:top_n].reshape(top_n,rems.shape[1],rems.shape[2])
+    top_n_components = V[:top_n]
+
+    mean_weight = np.mean(np.dot(svd_x, top_n_components.T), axis=0)
+    average_trend = mean_weight @ top_n_components
 
     data_config.__terrain_size__ = data_config.__terrain_size__ / 2
 
-    return top_n_components
+    return average_trend
 
 def get_mean_rem(data_config,nrems=2000):
     data_config.__number_of_buildings__ = max(16, data_config.__number_of_buildings__)
