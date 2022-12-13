@@ -61,7 +61,7 @@ class REMStaticDataset(Dataset):
 
 class REMInTimeDataset(Dataset):
 
-    def __init__(self, config, terrain_per_epoch,base_rem=None,rem_high=60, rem_low=-60):
+    def __init__(self, config, terrain_per_epoch,base_rem=None,clip=True,rem_high=20, rem_low=-40):
         self.config = config
         self.terrain_generator = Terrain(config.__terrain_size__)
         self.rem_generator = REMGenerator(
@@ -77,6 +77,8 @@ class REMInTimeDataset(Dataset):
             signal_strength=config.__signal_strength__
         )
         self.terrain_per_epoch = terrain_per_epoch
+
+        self.clip = clip
         self.rem_value_range = (rem_low, rem_high)
 
         self.transforms = Compose([
@@ -102,13 +104,18 @@ class REMInTimeDataset(Dataset):
 
         terrain = get_terrain_from_info(terrain_info)
         ht = random.choice(self.config.__Ht__)
-        rem = self.rem_generator.getREM(terrain, (0, 0), ht)
 
-        rem = np.clip(rem, a_min=self.rem_value_range[0], a_max=self.rem_value_range[1])
-        rem = (rem - self.rem_value_range[0]) / (self.rem_value_range[1] - self.rem_value_range[0])
-
-        if self.base_rem:
+        if self.base_rem is not None:
+            rem = self.rem_generator.getREM(terrain, (0, 0), ht)
             rem-=self.base_rem
+
+        else:
+            rem = self.rem_generator.getREM(terrain, (self.config.__terrain_size__//2, self.config.__terrain_size__//2), ht)
+
+        if self.clip:
+            rem = np.clip(rem, a_min=self.rem_value_range[0], a_max=self.rem_value_range[1])
+            rem = (rem - self.rem_value_range[0]) / (self.rem_value_range[1] - self.rem_value_range[0])
+
 
         transformed = self.transforms(image=terrain, rem=rem)
         return transformed['image'] / self.config.__max_height__, transformed['rem']

@@ -46,7 +46,7 @@ def get_mean_rem(data_config,nrems=2000):
     data_config.__number_of_buildings__ = max(16, data_config.__number_of_buildings__)
     data_config.__terrain_size__ = data_config.__terrain_size__ * 2
 
-    dgen = REMInTimeDataset(data_config, nrems)
+    dgen = REMInTimeDataset(data_config, nrems, clip=False)
 
     intime_dataloader = DataLoader(
         dgen,
@@ -71,4 +71,4 @@ def get_mean_rem(data_config,nrems=2000):
 
     rems = np.stack(out)
 
-    return np.mean(rems)
+    return np.mean(rems,axis=0)

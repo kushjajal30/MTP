@@ -62,7 +62,7 @@ class GenUnet(nn.Module):
         self.final_decoder_1 = singlelayer(32, 1, 3, 'same', 1, True)
         self.final_decoder_2 = singlelayer(1, 1, 3, 'same', 1, True)
         self.final_decoder_3 = nn.Conv2d(1, 1, 3, padding='same')
-        self.final_act = nn.Tanh()
+        self.final_act = nn.Sigmoid()
 
     def forward(self, x):
         down_b1 = self.down_b1(x)
@@ -92,7 +92,7 @@ class Discriminator(nn.Module):
         self.l2 = singlelayer(64, 128, 3, 'valid', 2, False)
         self.l3 = singlelayer(128, 256, 3, 'valid', 2, False)
         self.l4 = singlelayer(256, 256, 3, 'valid', 2, False)
-        self.outlayer = nn.Conv2d(256, 1, 3, padding="valid", stride=2)
+        self.outlayer = nn.Conv2d(256, 1, 3, padding="valid")
         self.activation = nn.Sigmoid()
 
     def forward(self, x):
