@@ -8,7 +8,7 @@ def get_eigen_rems(data_config,nrems=2000,top_n=1):
     data_config.__number_of_buildings__ = max(16,data_config.__number_of_buildings__)
     data_config.__terrain_size__ = data_config.__terrain_size__ * 2
 
-    dgen = REMInTimeDataset(data_config, nrems)
+    dgen = REMInTimeDataset(data_config, nrems, clip=False)
 
     intime_dataloader = DataLoader(
         dgen,
@@ -32,7 +32,7 @@ def get_eigen_rems(data_config,nrems=2000,top_n=1):
         out.append(np.flip(i[:64, :64], axis=(0, 1)))
 
     rems = np.stack(out)
-    svd_x = rems.reshape(nrems, -1)
+    svd_x = rems.reshape(nrems*4, -1)
 
     U, S, V = np.linalg.svd(svd_x)
 
@@ -41,7 +41,8 @@ def get_eigen_rems(data_config,nrems=2000,top_n=1):
     mean_weight = np.mean(np.dot(svd_x, top_n_components.T), axis=0)
     average_trend = mean_weight @ top_n_components
 
-    data_config.__terrain_size__ = data_config.__terrain_size__ / 2
+    data_config.__terrain_size__ = data_config.__terrain_size__ // 2
+    average_trend = average_trend.reshape(data_config.__terrain_size__,data_config.__terrain_size__)
 
     return average_trend
 
@@ -73,5 +74,6 @@ def get_mean_rem(data_config,nrems=2000):
         out.append(np.flip(i[:64, :64], axis=(0, 1)))
 
     rems = np.stack(out)
+    data_config.__terrain_size__ = data_config.__terrain_size__ // 2
 
     return np.mean(rems,axis=0)

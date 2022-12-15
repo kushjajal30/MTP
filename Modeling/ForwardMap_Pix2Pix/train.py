@@ -10,6 +10,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import os
+import numpy as np
 
 
 def main():
@@ -17,9 +18,13 @@ def main():
     device = 'cuda'
 
     if config.__use_pixel_norm__:
-        traindataset = REMInTimeDataset(data_config, 1024 , base_rem=get_eigen_rems(data_config,top_n=1))
+        eigen_rem = get_eigen_rems(data_config,top_n=2)
+        plt.matshow(eigen_rem, cmap='jet')
+        plt.show()
+        np.save(os.path.join(config.__model_path__,'eigen_rem.npy'),eigen_rem)
+        traindataset = REMInTimeDataset(data_config, 1024 , base_rem=eigen_rem)
     else:
-        traindataset = REMInTimeDataset(data_config,1024)
+        traindataset = REMInTimeDataset(data_config,1024, base_rem=0)
 
     train_loader = DataLoader(traindataset, batch_size=config.__bs__, num_workers=config.__dataloader_workers__)
 
@@ -61,7 +66,7 @@ def main():
             ter = ter.to(device, dtype=torch.float)
             rem = rem.to(device, dtype=torch.float)
 
-            rem_fake = gen(rem)
+            rem_fake = gen(ter)
 
             dis_real_out = dis(torch.cat([ter, rem], dim=1))
             dis_fake_out = dis(torch.cat([ter, rem_fake], dim=1))
@@ -106,8 +111,8 @@ def main():
 
         plt.savefig(f"epoch:{epoch}.png")
 
-        torch.save(gen, gen_path)
-        torch.save(dis, dis_path)
+        torch.save(gen, gen_path.replace('.pth',f'_{epoch}.pth'))
+        torch.save(dis, dis_path.replace('.pth',f'_{epoch}.pth'))
 
 
 if __name__ == '__main__':
