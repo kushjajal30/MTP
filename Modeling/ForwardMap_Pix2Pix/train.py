@@ -22,9 +22,9 @@ def main():
         plt.matshow(eigen_rem, cmap='jet')
         plt.show()
         np.save(os.path.join(config.__model_path__,'eigen_rem.npy'),eigen_rem)
-        traindataset = REMInTimeDataset(data_config, 1024 , base_rem=eigen_rem)
+        traindataset = REMInTimeDataset(data_config, 1024 , base_rem=eigen_rem,rem_high=20,rem_low=-40)
     else:
-        traindataset = REMInTimeDataset(data_config,1024, base_rem=0)
+        traindataset = REMInTimeDataset(data_config,1024, base_rem=0,rem_high=60,rem_low=-60)
 
     train_loader = DataLoader(traindataset, batch_size=config.__bs__, num_workers=config.__dataloader_workers__)
 
