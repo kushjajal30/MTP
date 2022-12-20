@@ -1,5 +1,5 @@
 __bs__ = 16
-__epochs__ = 45
+__epochs__ = 80
 __dataloader_workers__ = 28
 __gen_lr__ = 1e-3
 __dis_lr__ = 1e-3

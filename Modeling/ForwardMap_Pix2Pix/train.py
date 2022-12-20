@@ -102,8 +102,8 @@ def main():
 
         plt.savefig(f"epoch:{epoch}.png")
 
-        torch.save(gen, gen_path)
-        torch.save(dis, dis_path)
+        torch.save(gen, gen_path.replace('.pth',f'_{epoch}.pth'))
+        torch.save(dis, dis_path.replace('.pth',f'_{epoch}.pth'))
 
 
 if __name__ == '__main__':

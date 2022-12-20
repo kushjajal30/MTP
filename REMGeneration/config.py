@@ -3,12 +3,12 @@ __NCPUS__ = 25
 __output_path = 'REMS_1609'
 
 ##Terrain Generator Params
-__number_of_buildings__ = 25
+__number_of_buildings__ = 9
 __building_min_width__ = 10
 __building_min_length__ = 10
 __building_max_width__ = 40
 __building_max_length__ = 40
-__terrain_size__ = 200
+__terrain_size__ = 64
 __min_height__ = 15
 __max_height__ = 40
 
