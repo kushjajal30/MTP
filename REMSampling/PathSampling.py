@@ -114,7 +114,7 @@ class PathSampler2:
 
     def modifyterrain(self,terrain,terrain_info):
 
-        pad = np.random.choice([i for i in range(11)],p=[(6-abs(6-i-1))/(5*(5+1)+6) for i in range(11)])
+        pad = np.random.choice([i for i in range(6)],p=[1/9,1/6,2/9,2/9,1/6,1/9])
 
         for building in terrain_info:
 
